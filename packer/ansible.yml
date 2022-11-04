@@ -1,0 +1,49 @@
+---
+- hosts: all
+  become: yes
+  become_user: root
+  become_method: sudo
+  tasks:
+  
+  - name: Install nginx
+    apt:
+      name: nginx
+      state: latest
+  - name: start nginx
+    service:
+      name: nginx
+      state: started
+    become: yes
+  - name: copy the nginx config file 
+    copy:
+      src: /tmp/configuration.conf
+      dest: /etc/nginx/sites-available/configuration.conf
+    become: yes
+  - name: create symlink
+    file:
+      src: /etc/nginx/sites-available/configuration.conf
+      dest: /etc/nginx/sites-enabled/configuration.conf
+      state: link
+    become: yes
+  - name: restart nginx
+    service:
+      name: nginx
+      state: restarted
+    become: yes
+  - name: Install git
+    apt:
+      name: git
+      state: present
+      update_cache: yes
+  - name: add apt key for nodesource
+    apt_key: url=https://deb.nodesource.com/gpgkey/nodesource.gpg.key
+  - name: add repo for nodesource
+    apt_repository:
+      repo: 'deb https://deb.nodesource.com/node_16.x {{ ansible_distribution_release }} main' 
+      update_cache: yes
+  - name: install nodejs
+    apt: name=nodejs
+  - name: Install pm2
+    npm:
+      name: pm2
+      global: yes     
